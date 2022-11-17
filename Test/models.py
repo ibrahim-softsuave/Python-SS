@@ -38,7 +38,7 @@ class User(AbstractUser, PermissionsMixin):
     user_id = models.UUIDField(default=uuid.uuid4(), unique=True, null=False, primary_key=True)
     username = models.CharField(unique=True, max_length=30, null=False)
     email = models.EmailField(unique=True)
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=django.utils.timezone.now)
     updated_at = models.DateTimeField(auto_now=True)

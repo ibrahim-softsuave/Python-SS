@@ -24,6 +24,14 @@ class RegisterSerializer(serializers.Serializer):
         del validated_data['confirm_password']
         return User.objects.create_user(**validated_data)
 
+    def validate(self, validated_data):
+        if User.objects.filter(email=validated_data.get('email', '')).exists():
+            raise Exception('Email Already exists')
+        elif User.objects.filter(username=validated_data.get('username', '')).exists():
+            raise Exception('Username Already exists')
+
+        return validated_data
+
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(min_length=8)
