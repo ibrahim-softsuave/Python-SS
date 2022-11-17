@@ -12,6 +12,7 @@ from http import HTTPStatus as status
 from rest_framework_simplejwt.tokens import RefreshToken
 from Test.models import User
 from fernet import Fernet
+from .tasks import send_email_for_otp_verification
 
 
 # Create your views here.
@@ -46,6 +47,7 @@ class RegisterAPI(generics.ListCreateAPIView):
                 return Response(str(e), status=status.BAD_REQUEST)
 
             serializer.save()
+            send_email_for_otp_verification.delay(user_data)
             response_data = dict(
                 message='User Created Successfully',
                 status='Success',

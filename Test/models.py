@@ -42,6 +42,8 @@ class User(AbstractUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=django.utils.timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
+    otp = models.CharField(max_length=20, blank=True)
+    otp_created_at = models.DateTimeField(auto_now=True, null=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import register, User
+from .utils import otp_generator
+
 
 class registerserializers(serializers.Serializer):
     email=serializers.EmailField(max_length=100)
@@ -22,7 +24,11 @@ class RegisterSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         del validated_data['confirm_password']
-        return User.objects.create_user(**validated_data)
+        user = User.objects.create_user(**validated_data)
+        otp = otp_generator(user)
+        user.otp = otp
+        user.save()
+        return user
 
     def validate(self, validated_data):
         if User.objects.filter(email=validated_data.get('email', '')).exists():
