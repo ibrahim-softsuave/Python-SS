@@ -94,6 +94,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+
+    'Learning.middleware.CustomMiddleware',
 ]
 
 ROOT_URLCONF = 'Learning.urls'

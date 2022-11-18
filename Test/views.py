@@ -37,57 +37,53 @@ class RegisterAPI(generics.ListCreateAPIView):
     serializer_class = RegisterSerializer
 
     def post(self, request):
+        user_data = request.data
+        serializer = self.serializer_class(data=user_data)
+        if user_data.get('password') != user_data.get('confirm_password'):
+            return Response("Password and Confirm password doesn't match", status=status.BAD_REQUEST)
         try:
-            user_data = request.data
-            serializer = self.serializer_class(data=user_data)
-            if user_data.get('password') != user_data.get('confirm_password'):
-                return Response("Password and Confirm password doesn't match", status=status.BAD_REQUEST)
-            try:
-                serializer.is_valid(raise_exception=True)
-            except Exception as e:
-                return Response(str(e), status=status.BAD_REQUEST)
-
-            serializer.save()
-            send_email_for_otp_verification.delay(user_data)
-            response_data = dict(
-                message='User Created Successfully',
-                status='Success',
-                statusCode=201
-            )
-            return Response(response_data, status=status.CREATED)
+            serializer.is_valid(raise_exception=True)
         except Exception as e:
             return Response(str(e), status=status.BAD_REQUEST)
+
+        serializer.save()
+        send_email_for_otp_verification.delay(user_data)
+        response_data = dict(
+            message='User Created Successfully',
+            status='Success',
+            statusCode=201
+        )
+        return Response(response_data, status=status.CREATED)
 
 
 class LoginAPI(generics.ListCreateAPIView):
     serializer_class = LoginSerializer
 
     def post(self, request):
+        # try:
+        user_data = request.data1
+        serializer = self.serializer_class(data=user_data)
         try:
-            user_data = request.data
-            serializer = self.serializer_class(data=user_data)
-            try:
-                serializer.is_valid(raise_exception=True)
-            except Exception as e:
-                return Response(str(e), status=status.BAD_REQUEST)
-            user = auth.authenticate(
-                email=user_data.get('email'),
-                password=user_data.get('password')
-            )
-            if not user:
-                return Response("User doesn't exist", status=status.BAD_REQUEST)
-            refresh_token = RefreshToken.for_user(user)
-            response_data = dict(
-                message='Logged In Successfully',
-                status='Success',
-                statusCode=200,
-                email=user.email,
-                username=user.username,
-                token={
-                    'refresh_token': str(refresh_token),
-                    'access_token': str(refresh_token.access_token)
-                }
-            )
-            return Response(response_data, status=status.OK)
+            serializer.is_valid(raise_exception=True)
         except Exception as e:
             return Response(str(e), status=status.BAD_REQUEST)
+        user = auth.authenticate(
+            email=user_data.get('email'),
+            password=user_data.get('password')
+        )
+        if not user:
+            return Response("User doesn't exist", status=status.BAD_REQUEST)
+        refresh_token = RefreshToken.for_user(user)
+        response_data = dict(
+            message='Logged In Successfully',
+            status='Success',
+            statusCode=200,
+            email=user.email,
+            username=user.username,
+            token={
+                'refresh_token': str(refresh_token),
+                'access_token': str(refresh_token.access_token)
+            }
+        )
+        return Response(response_data, status=status.OK)
+
