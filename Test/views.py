@@ -35,6 +35,7 @@ def Home(request):
 
 class RegisterAPI(generics.ListCreateAPIView):
     serializer_class = RegisterSerializer
+
     def post(self, request):
         try:
             user_data = request.data
