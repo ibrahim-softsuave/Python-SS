@@ -37,7 +37,6 @@ class CustomMiddleware:
 
     def process_exception(self, request, exception):
         self.response_data['message'] = str(exception)
-
         return HttpResponse(self.response_data, status=status.BAD_REQUEST)
 
 
