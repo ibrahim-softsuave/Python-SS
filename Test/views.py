@@ -11,8 +11,10 @@ from Test.serializers import RegisterSerializer, LoginSerializer
 from http import HTTPStatus as status
 from rest_framework_simplejwt.tokens import RefreshToken
 from Test.models import User
-from fernet import Fernet
 from .tasks import send_email_for_otp_verification
+from Learning.constant import RESPONSE_DATA
+from Test.utils import upload_file
+from copy import deepcopy
 
 
 # Create your views here.
@@ -37,14 +39,17 @@ class RegisterAPI(generics.ListCreateAPIView):
     serializer_class = RegisterSerializer
 
     def post(self, request):
+        response_data = deepcopy(RESPONSE_DATA)
         user_data = request.data
         serializer = self.serializer_class(data=user_data)
         if user_data.get('password') != user_data.get('confirm_password'):
-            return Response("Password and Confirm password doesn't match", status=status.BAD_REQUEST)
+            response_data['message'] = "Password and Confirm password doesn't match"
+            return Response(response_data, status=status.BAD_REQUEST)
         try:
             serializer.is_valid(raise_exception=True)
         except Exception as e:
-            return Response(str(e), status=status.BAD_REQUEST)
+            response_data['message'] = str(e)
+            return Response(response_data, status=status.BAD_REQUEST)
 
         serializer.save()
         send_email_for_otp_verification.delay(user_data)
@@ -60,19 +65,21 @@ class LoginAPI(generics.ListCreateAPIView):
     serializer_class = LoginSerializer
 
     def post(self, request):
-        # try:
-        user_data = request.data1
+        response_data = deepcopy(RESPONSE_DATA)
+        user_data = request.data
         serializer = self.serializer_class(data=user_data)
         try:
             serializer.is_valid(raise_exception=True)
         except Exception as e:
-            return Response(str(e), status=status.BAD_REQUEST)
+            response_data['message'] = str(e)
+            return Response(response_data, status=status.BAD_REQUEST)
         user = auth.authenticate(
             email=user_data.get('email'),
             password=user_data.get('password')
         )
         if not user:
-            return Response("User doesn't exist", status=status.BAD_REQUEST)
+            response_data['message'] = "User doesn't exist"
+            return Response(response_data, status=status.BAD_REQUEST)
         refresh_token = RefreshToken.for_user(user)
         response_data = dict(
             message='Logged In Successfully',
@@ -87,3 +94,16 @@ class LoginAPI(generics.ListCreateAPIView):
         )
         return Response(response_data, status=status.OK)
 
+
+class FileUploadAPI(generics.ListCreateAPIView):
+    def post(self, request):
+        response_data = deepcopy(RESPONSE_DATA)
+        file = request.data.get('file')
+        if not file:
+            response_data['message'] = "File not found"
+            return Response(response_data, status=status.BAD_REQUEST)
+        file_path = upload_file(file)
+        response_data['message'] = "File uploaded successfully"
+        response_data['filePath'] = file_path
+        
+        return Response(RESPONSE_DATA, status=status.OK)

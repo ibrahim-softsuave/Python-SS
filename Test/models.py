@@ -83,3 +83,6 @@ class CustomAccountManager(BaseUserManager):
         user_data.set_password(user['password'])
         user_data.save()
         return user_data
+    
+
+# class 
