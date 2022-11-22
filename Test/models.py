@@ -44,6 +44,7 @@ class User(AbstractUser, PermissionsMixin):
     updated_at = models.DateTimeField(auto_now=True)
     otp = models.CharField(max_length=20, blank=True)
     otp_created_at = models.DateTimeField(auto_now=True, null=True)
+    is_verified = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

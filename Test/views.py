@@ -15,6 +15,7 @@ from .tasks import send_email_for_otp_verification
 from Learning.constant import RESPONSE_DATA
 from Test.utils import upload_file
 from copy import deepcopy
+from datetime import timedelta,datetime
 
 
 # Create your views here.
@@ -114,19 +115,26 @@ class EmailVerificationAPI(generics.ListCreateAPIView):
 
     def post(self, request):
         response_data = deepcopy(RESPONSE_DATA)
-        serializer=self.serializer_class(request.data)
+        data = request.data
+        serializer = self.serializer_class(data=request.data)
         try:
             serializer.is_valid(raise_exception=True)
         except Exception as e:
             response_data['message'] = str(e)
             return Response(response_data, status=status.BAD_REQUEST)
-        serializer_value=serializer.is_valid(raise_exception=True)
-        user=User.objects.filter(email=request.get('email', ''))
-        if serializer_value.otp == user.otp:
-            response_data={
-                "message":'Email Verification Successfully'
-            }
-            return Response(response_data,status=200)
+
+        user=User.objects.get(email=request.data.get('email', ''))
+        verified_otp_time=user.otp_created_at+timedelta(minutes=1)
+        if serializer.data.get('otp') == user.otp:
+            if verified_otp_time <= datetime.now():
+                user.is_verified=True
+                response_data={
+                    "message":'Email Verification Successfully'
+                }
+                return Response(response_data,status=200)
+            else:
+                send_email_for_otp_verification.delay(data)
+                return Response('Otp Experied',status=status.BAD_REQUEST)
         else:
-            send_email_for_otp_verification.delay(user)
+            send_email_for_otp_verification.delay(data)
             return Response(response_data,status=status.BAD_REQUEST)
