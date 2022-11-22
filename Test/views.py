@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics
 from django.contrib import auth
 from rest_framework.response import Response 
-from Test.serializers import RegisterSerializer, LoginSerializer
+from Test.serializers import RegisterSerializer, LoginSerializer,EmailVerificationSerializer
 from http import HTTPStatus as status
 from rest_framework_simplejwt.tokens import RefreshToken
 from Test.models import User
@@ -107,3 +107,26 @@ class FileUploadAPI(generics.ListCreateAPIView):
         response_data['filePath'] = file_path
         
         return Response(RESPONSE_DATA, status=status.OK)
+
+
+class EmailVerificationAPI(generics.ListCreateAPIView):
+    serializer_class = EmailVerificationSerializer
+
+    def post(self, request):
+        response_data = deepcopy(RESPONSE_DATA)
+        serializer=self.serializer_class(request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception as e:
+            response_data['message'] = str(e)
+            return Response(response_data, status=status.BAD_REQUEST)
+        serializer_value=serializer.is_valid(raise_exception=True)
+        user=User.objects.filter(email=request.get('email', ''))
+        if serializer_value.otp == user.otp:
+            response_data={
+                "message":'Email Verification Successfully'
+            }
+            return Response(response_data,status=200)
+        else:
+            send_email_for_otp_verification.delay(user)
+            return Response(response_data,status=status.BAD_REQUEST)
