@@ -46,10 +46,10 @@ class LoginSerializer(serializers.Serializer):
         fields = ['email', 'password']
 
 class EmailVerificationSerializer(serializers.Serializer):
-    email=serializers.EmailField()
-    otp=serializers.CharField(max_length=20,allow_blank=True)
+    email = serializers.EmailField()
+    otp = serializers.CharField(max_length=20, allow_blank=True)
     class Meta:
-        fields=["email",'otp']
+        fields = ["email", "otp"]
 
     def create(self, user):
         otp = otp_generator(user)
