@@ -44,3 +44,21 @@ class LoginSerializer(serializers.Serializer):
 
     class Meta:
         fields = ['email', 'password']
+
+class EmailVerificationSerializer(serializers.Serializer):
+    email=serializers.EmailField()
+    otp=serializers.CharField(max_length=20,allow_blank=True)
+    class Meta:
+        fields=["email",'otp']
+
+    def create(self, user):
+        otp = otp_generator(user)
+        user.otp = otp
+        user.save()
+        return user
+
+    def validate(self, validated_data):
+        if User.objects.filter(email=validated_data.get('email', '')).exists():
+            return validated_data
+        else:
+            return Exception('Email does not Exists,PlZ Check Once')
