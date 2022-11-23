@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
     'corsheaders',
+    'post',
 ]
 
 SIMPLE_JWT = {
@@ -94,7 +95,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-
     'Learning.middleware.CustomMiddleware',
 ]
 
@@ -125,7 +125,7 @@ WSGI_APPLICATION = 'Learning.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ps_2',
+        'NAME': 'test_is',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
         'HOST': 'localhost',
