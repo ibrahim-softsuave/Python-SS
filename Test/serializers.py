@@ -13,7 +13,7 @@ class registerserializers(serializers.Serializer):
 
 class RegisterSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    username = serializers.CharField(max_length=30, min_length=8)
+    username = serializers.CharField(max_length=20, min_length=8)
     password = serializers.CharField(max_length=30, min_length=8)
     confirm_password = serializers.CharField(max_length=30, min_length=8)
     
