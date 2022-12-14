@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics
 from django.contrib import auth
 from rest_framework.response import Response 
-from Test.serializers import RegisterSerializer, LoginSerializer
+from Test.serializers import RegisterSerializer, LoginSerializer,EmailVerificationSerializer
 from http import HTTPStatus as status
 from rest_framework_simplejwt.tokens import RefreshToken
 from Test.models import User
@@ -15,6 +15,7 @@ from .tasks import send_email_for_otp_verification
 from Learning.constant import RESPONSE_DATA
 from Test.utils import upload_file
 from copy import deepcopy
+from datetime import timedelta,datetime
 
 
 # Create your views here.
@@ -107,3 +108,33 @@ class FileUploadAPI(generics.ListCreateAPIView):
         response_data['filePath'] = file_path
         
         return Response(RESPONSE_DATA, status=status.OK)
+
+
+class EmailVerificationAPI(generics.ListCreateAPIView):
+    serializer_class = EmailVerificationSerializer
+
+    def post(self, request):
+        response_data = deepcopy(RESPONSE_DATA)
+        data = request.data
+        serializer = self.serializer_class(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception as e:
+            response_data['message'] = str(e)
+            return Response(response_data, status=status.BAD_REQUEST)
+
+        user=User.objects.get(email=request.data.get('email', ''))
+        verified_otp_time=user.otp_created_at+timedelta(minutes=1)
+        if serializer.data.get('otp') == user.otp:
+            if verified_otp_time <= datetime.now():
+                user.is_verified=True
+                response_data={
+                    "message":'Email Verification Successfully'
+                }
+                return Response(response_data,status=200)
+            else:
+                send_email_for_otp_verification.delay(data)
+                return Response('Otp Experied',status=status.BAD_REQUEST)
+        else:
+            send_email_for_otp_verification.delay(data)
+            return Response(response_data,status=status.BAD_REQUEST)
