@@ -4,3 +4,5 @@ from django.shortcuts import render
 
 class Post:
     pass
+class rebase:
+    pass
