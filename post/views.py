@@ -6,3 +6,9 @@ class get:
 
 class Post:
     pass
+
+class Local:
+    pass
+
+class Private:
+    pass
