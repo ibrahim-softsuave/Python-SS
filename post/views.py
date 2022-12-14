@@ -7,3 +7,6 @@ class Post:
 
 class Local:
     pass
+
+class Private:
+    pass
